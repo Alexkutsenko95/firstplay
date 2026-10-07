@@ -3,6 +3,10 @@ import { AIRTIME_STEPS, SPOT_KICK_STEPS } from './steps';
 
 export const PROTOCOL_VERSION = 1;
 export const MAX_EVENTS_PER_BATCH = 20;
+/** A page left open for an hour is no longer a first visit; also keeps `t` well inside a Postgres integer. */
+export const MAX_EVENT_TIME_MS = 60 * 60 * 1000;
+/** A game marks each step at most once per page load, so a real sequence stays far below this. */
+export const MAX_EVENT_SEQ = 1000;
 
 export const platformSchema = z.enum(['crazygames', 'site', 'dev', 'sim']);
 export const deviceSchema = z.enum(['mobile', 'tablet', 'desktop']);
@@ -14,8 +18,8 @@ function funnelEventSchema<TStep extends z.ZodType>(step: TStep) {
     id: z.uuid(),
     step,
     // Milliseconds since the page started loading, not a client clock: the server stamps the time itself.
-    t: z.int().min(0),
-    seq: z.int().min(0),
+    t: z.int().min(0).max(MAX_EVENT_TIME_MS),
+    seq: z.int().min(0).max(MAX_EVENT_SEQ),
   });
 }
 

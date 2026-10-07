@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "firstplay-collector",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // postgres.js needs Node's net/tls compatibility layer to open a TCP connection through Hyperdrive.
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "vars": {
+    // Pages allowed to send beacons. Comma-separated, exact origins.
+    "ALLOWED_ORIGINS": "http://localhost:5173",
+  },
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      // Replace with the id printed by `wrangler hyperdrive create` (see README).
+      "id": "00000000000000000000000000000000",
+    },
+  ],
+}

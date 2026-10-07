@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_EVENTS_PER_BATCH, parseBatch, type ParseBatchResult } from './index';
+import { MAX_EVENT_SEQ, MAX_EVENT_TIME_MS, MAX_EVENTS_PER_BATCH, parseBatch, type ParseBatchResult } from './index';
 
 // Deterministic v4 UUIDs: tests must not depend on randomness.
 const uuid = (n: number) => `00000000-0000-4000-8000-${n.toString().padStart(12, '0')}`;
@@ -58,6 +58,15 @@ describe('parseBatch', () => {
 
   it('rejects a fractional time', () => {
     expect(issuePaths(parseBatch(batch({ events: [event(0, { t: 12.5 })] })))).toEqual(['events.0.t']);
+  });
+
+  it('rejects a time beyond the first-visit horizon', () => {
+    expect(parseBatch(batch({ events: [event(0, { t: MAX_EVENT_TIME_MS })] })).ok).toBe(true);
+    expect(issuePaths(parseBatch(batch({ events: [event(0, { t: MAX_EVENT_TIME_MS + 1 })] })))).toEqual(['events.0.t']);
+  });
+
+  it('rejects an impossible sequence number', () => {
+    expect(issuePaths(parseBatch(batch({ events: [event(0, { seq: MAX_EVENT_SEQ + 1 })] })))).toEqual(['events.0.seq']);
   });
 
   it(`accepts exactly ${MAX_EVENTS_PER_BATCH} events and rejects one more`, () => {
